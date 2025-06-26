@@ -1,0 +1,38 @@
+server:
+  port: 8081  # 本服务启动端口
+
+spring:
+  application:
+    name: gulimall-user
+
+  datasource:
+    url: jdbc:mysql://127.0.0.1:9001/gulimall_user?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456789
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 9003
+      timeout: 3000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: 3000
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1
+        port: 8848
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.gulimall.user.entity
+
+logging:
+  level:
+    com.gulimall: debug  # 开启调试日志（可选）
+
+debug: true

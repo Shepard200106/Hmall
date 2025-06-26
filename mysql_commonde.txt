@@ -1,0 +1,133 @@
+USE gulimall_pms;
+
+CREATE TABLE `pms_category` (
+  `cat_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '分类id',
+  `name` VARCHAR(50) NOT NULL COMMENT '分类名称',
+  `parent_cid` BIGINT DEFAULT 0 COMMENT '父分类id',
+  `cat_level` INT DEFAULT 1 COMMENT '层级：1-一级分类，2-二级，3-三级',
+  `show_status` INT DEFAULT 1 COMMENT '是否显示[0-不显示，1显示]',
+  `sort` INT DEFAULT 0 COMMENT '排序',
+  PRIMARY KEY (`cat_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品三级分类';
+
+mysql> CREATE TABLE `pms_brand` (
+  `brand_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '品牌id',
+  `name` VARCHAR(50) NOT NULL COMMENT '品牌名',
+  `logo` VARCHAR(255) COMMENT '品牌logo地址',
+  `descript` VARCHAR(500) COMMENT '介绍',
+  `show_status` TINYINT(1) DEFAULT 1 COMMENT '显示状态[0-不显示；1-显示]',
+  `first_letter` CHAR(1) COMMENT '检索首字母',
+  `sort` INT DEFAULT 0 COMMENT '排序',
+  PRIMARY KEY (`brand_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='品牌';
+Query OK, 0 rows affected (0.04 sec)
+
+1. 规格分组表 pms_attr_group
+CREATE TABLE `pms_attr_group` (
+  `attr_group_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '分组id',
+  `attr_group_name` VARCHAR(100) COMMENT '组名',
+  `sort` INT DEFAULT 0 COMMENT '排序',
+  `descript` VARCHAR(255) COMMENT '说明',
+  `icon` VARCHAR(255) COMMENT '图标',
+  `catelog_id` BIGINT COMMENT '所属分类id',
+  PRIMARY KEY (`attr_group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='属性分组';
+
+2. 平台属性表 pms_attr
+CREATE TABLE `pms_attr` (
+  `attr_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '属性id',
+  `attr_name` VARCHAR(100) COMMENT '属性名',
+  `search_type` TINYINT(1) DEFAULT 0 COMMENT '是否需要检索 [0-否，1-是]',
+  `icon` VARCHAR(255) COMMENT '图标',
+  `value_select` VARCHAR(2000) COMMENT '可选值列表，以逗号分隔',
+  `attr_type` TINYINT(1) COMMENT '属性类型 [0-销售属性，1-基本属性]',
+  `enable` TINYINT(1) DEFAULT 1 COMMENT '启用状态',
+  `catelog_id` BIGINT COMMENT '所属分类',
+  `show_desc` TINYINT(1) DEFAULT 0 COMMENT '是否展示在介绍上',
+  PRIMARY KEY (`attr_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品属性';
+
+3. 属性与分组关联表 pms_attr_attrgroup_relation
+CREATE TABLE `pms_attr_attrgroup_relation` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `attr_id` BIGINT COMMENT '属性id',
+  `attr_group_id` BIGINT COMMENT '属性分组id',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='属性&属性分组关联';
+
+
+
+构建“一个完整商品”的数据体系：
+
+数据类型	表名	说明
+SPU主信息	pms_spu_info	一个商品的整体描述（如：华为Mate60）
+SPU描述图文	pms_spu_info_desc	富文本介绍、图文详情页
+SPU属性值	pms_product_attr_value	基本属性的实际值（颜色=红）
+SKU表	pms_sku_info	每个规格组合成的实际商品（如：Mate60 Pro 白 12+256）
+SKU图片	pms_sku_images	每个 SKU 的图片
+SKU销售属性	pms_sku_sale_attr_value	每个 SKU 的销售属性（颜色、版本）
+
+CREATE TABLE `pms_spu_info` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '商品id',
+  `spu_name` VARCHAR(255) COMMENT '商品名称',
+  `spu_description` TEXT COMMENT '商品描述',
+  `catalog_id` BIGINT COMMENT '所属分类id',
+  `brand_id` BIGINT COMMENT '品牌id',
+  `publish_status` INT DEFAULT 0 COMMENT '上架状态[0 - 下架，1 - 上架]',
+  `create_time` DATETIME,
+  `update_time` DATETIME,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='spu信息';
+
+ 模块作用
+平台属性（基本属性）值保存在哪？
+👉 就是保存到 pms_product_attr_value 表！
+
+每一个 SPU 都有多个基本属性值，比如：
+
+SPU名称	属性名	属性值
+华为Mate60 Pro	屏幕尺寸	6.7英寸
+华为Mate60 Pro	运行内存	12GB
+CREATE TABLE `pms_product_attr_value` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `spu_id` BIGINT COMMENT '商品id',
+  `attr_id` BIGINT COMMENT '属性id',
+  `attr_name` VARCHAR(200) COMMENT '属性名',
+  `attr_value` VARCHAR(200) COMMENT '属性值',
+  `quick_show` TINYINT(1) DEFAULT 0 COMMENT '是否快速展示【0-否，1-是】',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='spu属性值';
+✅ SKU 相关表包括：
+表名	功能	必须
+pms_sku_info	SKU 主信息	✅
+pms_sku_images	SKU 图片（多图）	✅
+pms_sku_sale_attr_value	SKU 销售属性（如颜色）	✅
+CREATE TABLE `pms_sku_info` (
+  `sku_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'skuId',
+  `spu_id` BIGINT COMMENT 'spuId',
+  `sku_name` VARCHAR(255) COMMENT 'sku名称',
+  `sku_desc` TEXT COMMENT 'sku描述',
+  `catalog_id` BIGINT COMMENT '分类id',
+  `brand_id` BIGINT COMMENT '品牌id',
+  `sku_default_img` VARCHAR(255) COMMENT '默认图片',
+  `price` DECIMAL(10,2) COMMENT '价格',
+  `sale_count` BIGINT DEFAULT 0 COMMENT '销量',
+  PRIMARY KEY (`sku_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='sku信息';
+CREATE TABLE `pms_sku_images` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `sku_id` BIGINT COMMENT 'sku_id',
+  `img_url` VARCHAR(255) COMMENT '图片地址',
+  `img_sort` INT COMMENT '排序',
+  `default_img` TINYINT(1) COMMENT '是否默认图',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='sku图片';
+CREATE TABLE `pms_sku_sale_attr_value` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `sku_id` BIGINT COMMENT 'sku_id',
+  `attr_id` BIGINT COMMENT '销售属性id',
+  `attr_name` VARCHAR(255) COMMENT '销售属性名称',
+  `attr_value` VARCHAR(255) COMMENT '销售属性值',
+  `attr_sort` INT COMMENT '顺序',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='sku销售属性&值';
