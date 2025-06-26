@@ -1,4 +1,6 @@
 package com.gulimall.product.service;
 
-public interface SkuImagesService {
-}
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.gulimall.product.entity.SkuImagesEntity;
+
+public interface SkuImagesService extends IService<SkuImagesEntity> {}

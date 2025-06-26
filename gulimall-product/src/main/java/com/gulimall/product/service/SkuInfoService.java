@@ -1,4 +1,8 @@
 package com.gulimall.product.service;
 
-public interface SkuInfoService {
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.gulimall.product.entity.SkuInfoEntity;
+
+public interface SkuInfoService extends IService<SkuInfoEntity> {
 }
+

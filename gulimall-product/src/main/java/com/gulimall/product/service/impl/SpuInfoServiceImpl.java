@@ -1,4 +1,148 @@
 package com.gulimall.product.service.impl;
 
-public class SpuInfoServiceImpl {
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gulimall.common.exception.BizException;
+import com.gulimall.product.entity.*;
+import com.gulimall.product.mapper.SpuInfoMapper;
+import com.gulimall.product.service.*;
+import com.gulimall.product.vo.SpuSaveVo;
+import com.gulimall.product.vo.es.SkuEsModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity> implements SpuInfoService {
+    @Autowired
+    private SpuInfoDescService spuInfoDescService;
+    @Autowired
+    private ProductAttrValueService attrValueService;
+    @Autowired
+    private SkuInfoService skuInfoService;
+    @Autowired
+    private SkuImagesService skuImagesService;
+    @Autowired
+    private SkuSaleAttrValueService skuSaleAttrValueService;
+    @Autowired
+    private ElasticsearchClient elasticsearchClient;
+
+    @Override
+    public void saveSpuInfo(SpuSaveVo vo){
+
+        // ============ 1. 保存 SPU 基本信息 =============
+        SpuInfoEntity spu = new SpuInfoEntity();
+        spu.setSpuName(vo.getSpuName());
+        spu.setSpuDescription(vo.getSpuDescription());
+        spu.setCatalogId(vo.getCatalogId());
+        spu.setBrandId(vo.getBrandId());
+        spu.setPublishStatus(1); // 默认上架
+        spu.setCreateTime(new Date());
+        spu.setUpdateTime(new Date());
+        this.save(spu); // 保存 SPU
+        Long spuId = spu.getId();
+
+        // ============ 2. 保存图文描述（SPU_DESC） =============
+        SpuInfoDescEntity desc = new SpuInfoDescEntity();
+        desc.setSpuId(spuId);
+        desc.setDecript(vo.getDecript());
+        spuInfoDescService.save(desc);
+
+        // ============ 3. 保存基本属性值 =============
+        List<ProductAttrValueEntity> baseAttrEntities = vo.getBaseAttrs().stream().map(attr -> {
+            ProductAttrValueEntity val = new ProductAttrValueEntity();
+            val.setAttrId(attr.getAttrId());
+            val.setAttrName(attr.getAttrName());
+            val.setAttrValue(attr.getAttrValue());
+            val.setQuickShow(attr.getQuickShow());
+            val.setSpuId(spuId);
+            return val;
+        }).collect(Collectors.toList());
+        attrValueService.saveBatch(baseAttrEntities);
+
+        // ============ 4. 保存所有 SKU =============
+        for (SpuSaveVo.SkuVo skuVo : vo.getSkus()) {
+            SkuInfoEntity sku = new SkuInfoEntity();
+            sku.setSpuId(spuId);
+            sku.setSkuName(skuVo.getSkuName());
+            sku.setSkuDesc(skuVo.getSkuDesc());
+            sku.setPrice(skuVo.getPrice());
+            sku.setSkuDefaultImg(skuVo.getSkuDefaultImg());
+            sku.setBrandId(skuVo.getBrandId());
+            sku.setCatalogId(skuVo.getCatalogId());
+            sku.setSaleCount(0L);
+            skuInfoService.save(sku); // 保存 SKU
+            Long skuId = sku.getSkuId();
+
+            // 2.2 保存 sku 图片
+            List<SkuImagesEntity> images = skuVo.getImages().stream()
+                    .map(url -> {
+                        SkuImagesEntity img = new SkuImagesEntity();
+                        img.setSkuId(skuId);
+                        img.setImgUrl(url);
+                        img.setImgSort(0);
+                        img.setDefaultImg(url.equals(skuVo.getSkuDefaultImg()) ? 1 : 0);
+                        return img;
+                    }).collect(Collectors.toList());
+            skuImagesService.saveBatch(images);
+
+            // 2.3 保存 sku 销售属性
+            List<SkuSaleAttrValueEntity> saleAttrs = skuVo.getAttr().stream()
+                    .map(attr -> {
+                        SkuSaleAttrValueEntity val = new SkuSaleAttrValueEntity();
+                        val.setSkuId(skuId);
+                        val.setAttrId(attr.getAttrId());
+                        val.setAttrName(attr.getAttrName());
+                        val.setAttrValue(attr.getAttrValue());
+                        val.setAttrSort(0);
+                        return val;
+                    }).collect(Collectors.toList());
+            skuSaleAttrValueService.saveBatch(saleAttrs);
+        }
+    }
+
+    @Override
+    public void up(Long spuId){
+
+        // 1. 查出当前 spu 下所有 sku
+        List<SkuInfoEntity> skuList = skuInfoService.list(
+                new QueryWrapper<SkuInfoEntity>().eq("spu_id", spuId)
+        );
+        // ✅ 步骤 2：将每个 sku 转换为 Elasticsearch 可接受的文档对象（SkuEsModel）
+        List<SkuEsModel> esData = skuList.stream().map(sku ->{
+            SkuEsModel model = new SkuEsModel();
+            model.setSkuId(sku.getSkuId());
+            model.setSpuId(spuId);
+            model.setSkuTitle(sku.getSkuName());
+            model.setSkuPrice(sku.getPrice());
+            model.setSkuImg(sku.getSkuDefaultImg());
+            model.setBrandId(sku.getBrandId());
+            model.setCatalogId(sku.getCatalogId());
+            return model;
+        }).toList();
+        // 批量插入到 ES
+        // ✅ 步骤 3：将封装好的文档一条条插入到 Elasticsearch 的 product 索引中
+        for (SkuEsModel sku : esData) {
+            try {
+                elasticsearchClient.index(i-> i
+                        .index("product")                       // 指定索引名为 "product"
+                        .id(sku.getSkuId().toString())          // 文档 ID 使用 skuId
+                        .document(sku)                          // 要保存的文档内容
+                );
+            }catch (IOException e){
+                throw new BizException(500,"上架失败（ES 同步异常）");
+            }
+        }
+        // ✅ 上架成功：修改数据库状态为 1
+        // ✅ 步骤 4：上架成功后，修改数据库中 SPU 的发布状态为 1（已上架）
+        SpuInfoEntity spu = this.getById(spuId);
+        spu.setPublishStatus(1);
+        this.updateById(spu);
+    }
+
 }

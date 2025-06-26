@@ -1,4 +1,13 @@
 package com.gulimall.product.service.impl;
 
-public class SkuInfoServiceImpl {
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gulimall.product.entity.SkuInfoEntity;
+import com.gulimall.product.mapper.SkuInfoMapper;
+import com.gulimall.product.service.SkuInfoService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfoEntity>
+        implements SkuInfoService {
 }
+

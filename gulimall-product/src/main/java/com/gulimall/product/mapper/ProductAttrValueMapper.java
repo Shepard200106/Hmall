@@ -1,4 +1,10 @@
 package com.gulimall.product.mapper;
 
-public class ProductAttrValueMapper {
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.gulimall.product.entity.ProductAttrValueEntity;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface ProductAttrValueMapper extends BaseMapper<ProductAttrValueEntity> {
 }

@@ -1,4 +1,8 @@
 package com.gulimall.product.service;
 
-public interface AttrAttrgroupRelationService {
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.gulimall.product.entity.AttrAttrgroupRelationEntity;
+
+public interface AttrAttrgroupRelationService extends IService<AttrAttrgroupRelationEntity> {
 }
