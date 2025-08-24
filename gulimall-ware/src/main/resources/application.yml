@@ -1,0 +1,23 @@
+server:
+  port: 8004
+  address: 0.0.0.0
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+spring:
+  application:
+    name: gulimall-ware  # ✅ 必须设置服务名！这是导致你报错的关键
+  datasource:
+    url: jdbc:mysql://127.0.0.1:9001/gulimall_pms?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456789
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        ip: 127.0.0.1
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: my-producer-group

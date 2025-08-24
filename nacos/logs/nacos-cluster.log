@@ -1,54 +1,6 @@
-2025-06-16 14:40:50,400 INFO Current addressing mode selection : AddressServerMemberLookup
+2025-07-22 20:27:16,915 INFO Current addressing mode selection : StandaloneMemberLookup
 
-2025-06-16 14:41:00,433 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
+2025-07-22 20:27:18,314 INFO [ClusterRpcClientProxy] success to refresh cluster rpc client on start up,members =[] 
 
-2025-06-16 14:41:00,434 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:00,434 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:00,435 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:00,435 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:38,330 INFO Current addressing mode selection : AddressServerMemberLookup
-
-2025-06-16 14:41:48,356 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:48,376 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:48,377 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:48,378 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:41:48,379 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:42:29,021 INFO Current addressing mode selection : AddressServerMemberLookup
-
-2025-06-16 14:42:39,044 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:42:39,045 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:42:39,046 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:42:39,046 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:42:39,047 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:43:29,757 INFO Current addressing mode selection : AddressServerMemberLookup
-
-2025-06-16 14:43:39,776 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:43:39,776 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:43:39,777 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:43:39,777 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 14:43:39,777 ERROR [serverlist] exception, error : caused: jmenv.tbsite.net;
-
-2025-06-16 15:01:42,296 INFO Current addressing mode selection : StandaloneMemberLookup
-
-2025-06-16 15:01:43,494 INFO [ClusterRpcClientProxy] success to refresh cluster rpc client on start up,members =[] 
-
-2025-06-16 15:01:46,346 INFO This node is ready to provide external services
+2025-07-22 20:27:21,975 INFO This node is ready to provide external services
 

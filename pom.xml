@@ -13,28 +13,47 @@
         <module>gulimall-common</module>
         <module>gulimall-user</module>
         <module>gulimall-product</module>
+        <module>gulimall-order</module>
+        <module>gulimall-ware</module>
+        <module>gulimall-gateway</module>
     </modules>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring.boot.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <properties>
         <java.version>21</java.version>
 
         <!-- 版本管理 -->
-        <spring.boot.version>3.2.5</spring.boot.version>
-        <spring.cloud.version>2023.0.1</spring.cloud.version>
-        <spring.cloud.alibaba.version>2023.0.1.0</spring.cloud.alibaba.version>
-        <mybatis.spring.boot.version>3.0.3</mybatis.spring.boot.version>
+        <spring.boot.version>2.7.18</spring.boot.version>
+        <spring.cloud.version>2021.0.8</spring.cloud.version>
+        <spring.cloud.alibaba.version>2021.0.4.0</spring.cloud.alibaba.version>
+        <mybatis.spring.boot.version>2.2.2</mybatis.spring.boot.version>
+
         <mybatis.plus.version>3.5.6</mybatis.plus.version>
         <mysql.version>8.0.33</mysql.version>
         <lombok.version>1.18.30</lombok.version>
         <jjwt.version>0.11.5</jjwt.version>
 
         <elasticsearch.version>8.13.4</elasticsearch.version>
-
+        <mq.version>2.2.3</mq.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-
+            <dependency>
+                <groupId>com.gulimall</groupId>
+                <artifactId>gulimall-common</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
             <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -110,6 +129,36 @@
                 <scope>runtime</scope>
             </dependency>
 
+            <!-- ✅ RocketMQ 统一版本管理 -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${mq.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>1.2.23</version> <!-- ✅ 建议使用的稳定版本 -->
+            </dependency>
+
+            <dependency>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
+            <!-- 强制锁定 REST 客户端版本为 8.13.4，保持与 elasticsearch-java 一致 -->
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-client</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
+            <!-- 可选：确保低层核心库也一致 -->
+            <dependency>
+                <groupId>org.elasticsearch</groupId>
+                <artifactId>elasticsearch</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

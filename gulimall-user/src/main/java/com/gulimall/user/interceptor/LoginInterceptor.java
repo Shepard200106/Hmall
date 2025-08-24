@@ -2,8 +2,8 @@ package com.gulimall.user.interceptor;
 
 import com.gulimall.common.utils.JwtUtils;
 import com.gulimall.common.utils.UserContext;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**

@@ -1,0 +1,8 @@
+2025-07-22 20:27:23,667 INFO [PUSH] Task merge for Service{namespace='public', group='DEFAULT_GROUP', name='gulimall-user', ephemeral=true, revision=1}
+
+2025-07-22 20:27:24,172 INFO [PUSH-SUCC] 14ms, all delay time 519ms, SLA 521ms, Service{namespace='public', group='DEFAULT_GROUP', name='gulimall-user', ephemeral=true, revision=1}, originalSize=1, DataSize=1, target=192.168.1.55
+
+2025-07-22 20:27:25,480 INFO [PUSH] Task merge for Service{namespace='public', group='DEFAULT_GROUP', name='gulimall-gateway', ephemeral=true, revision=1}
+
+2025-07-22 20:27:25,999 INFO [PUSH-SUCC] 6ms, all delay time 523ms, SLA 523ms, Service{namespace='public', group='DEFAULT_GROUP', name='gulimall-gateway', ephemeral=true, revision=1}, originalSize=1, DataSize=1, target=192.168.1.55
+

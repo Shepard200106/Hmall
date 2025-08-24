@@ -29,9 +29,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         // 1. 从 Redis 获取验证码
         String redisCode = redisTemplate.opsForValue().get("verify:code:" + request.getPhone());
 //         2. 校验验证码是否存在/正确
-//        System.out.println("✅ redisCode 已加载！");
-//        System.out.println(redisCode);
-//        System.out.println(request.getCode());
+        System.out.println("✅ redisCode 已加载！");
+        System.out.println(redisCode);
+        System.out.println(request.getCode());
         if(redisCode == null || !redisCode.equals(request.getCode())) {
             throw new BizException(400,"验证码错误，或者已过期");
         }

@@ -1,6 +1,7 @@
 package com.gulimall.product.service.impl;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,22 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     public ProductSearchServiceImpl(ElasticsearchClient esClient) {
         this.esClient = esClient;
     }
+    @Override
+    public void saveSku(List<SkuEsModel> models) {
+        for (SkuEsModel model : models) {
+            try {
+                esClient.index(i -> i
+                        .index("product")
+                        .id(model.getSkuId().toString())
+                        .document(model)
+                );
+            } catch (IOException e) {
+                throw new RuntimeException("写入 ES 失败", e);
+            }
+        }
+    }
+
+
 //    SearchRequest request = SearchRequest.of(s -> s
 //            .index("product")
 //            .from(...)
@@ -100,6 +118,32 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                                     return r;
                                 }));
                             }
+
+                            // 添加属性筛选
+                            if(param.getAttrs() != null && !param.getAttrs().isEmpty()){
+                                for(String attr : param.getAttrs()){
+                                    String[] attrs = attr.split("_");
+                                    if(attrs.length == 2) {
+                                        String attrId = attrs[0];
+                                        String[] values = attrs[1].split(":");
+                                        b.filter(f -> f.nested(n -> n
+                                                .path("attrs")
+                                                .query(nq -> nq.bool(nb -> nb
+                                                        .must(m1 -> m1.term(t -> t.field("attrs.attrId").value(attrId)))
+                                                        .must(m2 -> m2.terms(t -> t
+                                                                .field("attrs.attrValue.keyword")
+                                                                .terms(tt -> {
+                                                                    List<FieldValue> valueList = Arrays.stream(values)
+                                                                            .map(FieldValue::of)
+                                                                            .collect(Collectors.toList());
+                                                                    return tt.value(valueList);
+                                                                })
+                                                        ))
+                                                ))
+                                        ));
+                                    }
+                                }
+                            }
                             return  b;
                         }
 
@@ -112,6 +156,19 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                         .field("catalogId")
                         .size(10)
                 ))
+                .aggregations("attr_agg", a -> a
+                        .nested(n -> n.path("attrs"))
+                        .aggregations("attr_id_agg", sub -> sub
+                                .terms(t -> t.field("attrs.attrId").size(10))
+                                .aggregations("attr_name_agg", sub2 -> sub2
+                                        .terms(t -> t.field("attrs.attrName.keyword").size(1))
+                                )
+                                .aggregations("attr_value_agg", sub2 -> sub2
+                                        .terms(t -> t.field("attrs.attrValue.keyword").size(50))
+                                )
+                        )
+                )
+
         );
 
         SearchResponse<SkuEsModel> response;
@@ -126,11 +183,11 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                 .collect(Collectors.toList());
         List<Long> brandIds = response.aggregations()
                 .get("brand_agg")
-                .lterms()
+                .sterms() // 👈 正确调用 string 类型 terms
                 .buckets()
                 .array()
                 .stream()
-                .map(bucket -> bucket.key())
+                .map(bucket -> Long.parseLong(bucket.key().stringValue())) // 👈 字符串转 Long
                 .collect(Collectors.toList());
         // 解析分类 ID 聚合结果
 //        用 .terms() 创建聚合
@@ -144,11 +201,11 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 //avg	聚合类型	平均值	平均价格、平均评分
         List<Long> catalogIds = response.aggregations()
                 .get("catalog_agg")
-                .lterms()
+                .sterms()
                 .buckets()
                 .array()
                 .stream()
-                .map(bucket -> bucket.key())
+                .map(bucket -> Long.parseLong(bucket.key().stringValue()))
                 .collect(Collectors.toList());
         SearchResult result = new SearchResult();
 

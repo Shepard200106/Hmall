@@ -3,19 +3,21 @@ package com.gulimall.product.service.impl;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.gulimall.common.exception.BizException;
 import com.gulimall.product.entity.*;
 import com.gulimall.product.mapper.SpuInfoMapper;
 import com.gulimall.product.service.*;
 import com.gulimall.product.vo.SpuSaveVo;
 import com.gulimall.product.vo.es.SkuEsModel;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Service
 public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity> implements SpuInfoService {
@@ -31,7 +33,9 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity
     private SkuSaleAttrValueService skuSaleAttrValueService;
     @Autowired
     private ElasticsearchClient elasticsearchClient;
-
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+    private static final Logger log = LoggerFactory.getLogger(SpuInfoServiceImpl.class);
     @Override
     public void saveSpuInfo(SpuSaveVo vo){
 
@@ -126,23 +130,29 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity
             return model;
         }).toList();
         // 批量插入到 ES
-        // ✅ 步骤 3：将封装好的文档一条条插入到 Elasticsearch 的 product 索引中
-        for (SkuEsModel sku : esData) {
-            try {
-                elasticsearchClient.index(i-> i
-                        .index("product")                       // 指定索引名为 "product"
-                        .id(sku.getSkuId().toString())          // 文档 ID 使用 skuId
-                        .document(sku)                          // 要保存的文档内容
-                );
-            }catch (IOException e){
-                throw new BizException(500,"上架失败（ES 同步异常）");
-            }
-        }
+//         ✅ 步骤 3：将封装好的文档一条条插入到 Elasticsearch 的 product 索引中
+//        for (SkuEsModel sku : esData) {
+//            try {
+//                elasticsearchClient.index(i-> i
+//                        .index("product")                       // 指定索引名为 "product"
+//                        .id(sku.getSkuId().toString())          // 文档 ID 使用 skuId
+//                        .document(sku)                          // 要保存的文档内容
+//                );
+//            }catch (IOException e){
+//                throw new BizException(500,"上架失败（ES 同步异常）");
+//            }
+//        }
+        // 3. 发送 RocketMQ 消息（代替直接写入 ES）
+
+        rocketMQTemplate.syncSend("product-up-topic", esData);
+        log.info("发送商品上架消息到 MQ，spuId={}, sku数量={}", spuId, esData.size());
         // ✅ 上架成功：修改数据库状态为 1
         // ✅ 步骤 4：上架成功后，修改数据库中 SPU 的发布状态为 1（已上架）
         SpuInfoEntity spu = this.getById(spuId);
         spu.setPublishStatus(1);
         this.updateById(spu);
+
     }
+
 
 }
