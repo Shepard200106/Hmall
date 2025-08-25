@@ -8,6 +8,7 @@ import com.gulimall.order.entity.OrderEntity;
 import com.gulimall.order.entity.OrderItemEntity;
 import com.gulimall.order.service.OrderService;
 import com.gulimall.order.vo.OrderSubmitVo;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
-
+    @GlobalTransactional(name = "createOrderGlobalTx", rollbackFor = Exception.class)
     @Override
     public OrderEntity submitOrder(OrderSubmitVo vo) {
         // 1. 构建订单

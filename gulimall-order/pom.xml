@@ -72,6 +72,21 @@
             <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Seata分布式事务依赖 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+            <!-- 版本号需要与你的Spring Cloud Alibaba版本匹配 -->
+            <version>2.2.7.RELEASE</version>
+        </dependency>
+
+        <!-- 如果使用Nacos作为注册中心，确保已添加以下依赖 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

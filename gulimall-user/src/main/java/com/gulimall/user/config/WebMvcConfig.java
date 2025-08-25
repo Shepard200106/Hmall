@@ -14,11 +14,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry){
         System.out.println("✅ WebMvcConfig 已加载！");
         registry.addInterceptor(new LoginInterceptor())
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/user/login",
-                        "/user/register",
-                        "/user/send-code/**"
-                );// 登录/注册/验证码 接口放行
+                .addPathPatterns("/**");
     }
 }

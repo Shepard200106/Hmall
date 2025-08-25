@@ -10,14 +10,17 @@ import com.gulimall.product.vo.SpuSaveVo;
 import com.gulimall.product.vo.es.SkuEsModel;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity> implements SpuInfoService {
@@ -35,10 +38,14 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity
     private ElasticsearchClient elasticsearchClient;
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate; // 新增Redis依赖
     private static final Logger log = LoggerFactory.getLogger(SpuInfoServiceImpl.class);
+
+
+    // 1. 你的代码：保存SPU信息
     @Override
     public void saveSpuInfo(SpuSaveVo vo){
-
         // ============ 1. 保存 SPU 基本信息 =============
         SpuInfoEntity spu = new SpuInfoEntity();
         spu.setSpuName(vo.getSpuName());
@@ -110,14 +117,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity
         }
     }
 
+    @Transactional
+    // 2. 你的代码：SPU上架
     @Override
     public void up(Long spuId){
-
         // 1. 查出当前 spu 下所有 sku
         List<SkuInfoEntity> skuList = skuInfoService.list(
                 new QueryWrapper<SkuInfoEntity>().eq("spu_id", spuId)
         );
-        // ✅ 步骤 2：将每个 sku 转换为 Elasticsearch 可接受的文档对象（SkuEsModel）
+        // 2. 将每个 sku 转换为 Elasticsearch 文档对象（SkuEsModel）
         List<SkuEsModel> esData = skuList.stream().map(sku ->{
             SkuEsModel model = new SkuEsModel();
             model.setSkuId(sku.getSkuId());
@@ -129,30 +137,46 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoMapper, SpuInfoEntity
             model.setCatalogId(sku.getCatalogId());
             return model;
         }).toList();
-        // 批量插入到 ES
-//         ✅ 步骤 3：将封装好的文档一条条插入到 Elasticsearch 的 product 索引中
-//        for (SkuEsModel sku : esData) {
-//            try {
-//                elasticsearchClient.index(i-> i
-//                        .index("product")                       // 指定索引名为 "product"
-//                        .id(sku.getSkuId().toString())          // 文档 ID 使用 skuId
-//                        .document(sku)                          // 要保存的文档内容
-//                );
-//            }catch (IOException e){
-//                throw new BizException(500,"上架失败（ES 同步异常）");
-//            }
-//        }
-        // 3. 发送 RocketMQ 消息（代替直接写入 ES）
 
+        // 3. 发送 RocketMQ 消息（同步到ES）
         rocketMQTemplate.syncSend("product-up-topic", esData);
         log.info("发送商品上架消息到 MQ，spuId={}, sku数量={}", spuId, esData.size());
-        // ✅ 上架成功：修改数据库状态为 1
-        // ✅ 步骤 4：上架成功后，修改数据库中 SPU 的发布状态为 1（已上架）
+
+        // 4. 修改SPU发布状态为已上架
         SpuInfoEntity spu = this.getById(spuId);
         spu.setPublishStatus(1);
         this.updateById(spu);
-
     }
 
 
+    // 3. 合并：带缓存的SPU查询（修改方法名为getSpuById，更规范）
+    @Override
+    public SpuInfoEntity getSpuById(Long spuId) {
+        // 1. 定义缓存key（格式：spu:info:SPU ID）
+        String cacheKey = "spu:info:" + spuId;
+
+        // 2. 先查Redis缓存
+        SpuInfoEntity spu = (SpuInfoEntity) redisTemplate.opsForValue().get(cacheKey);
+        if (spu != null) {
+            log.info("从Redis缓存获取SPU信息，ID：{}", spuId);
+            return spu; // 缓存命中，直接返回
+        }
+
+        // 3. 缓存未命中，查数据库
+        log.info("缓存未命中，从数据库查询SPU信息，ID：{}", spuId);
+        spu = baseMapper.selectById(spuId);
+
+        if (spu == null) {
+            // 处理缓存穿透：缓存空值（5分钟过期）
+            redisTemplate.opsForValue().set(cacheKey, null, 5, TimeUnit.MINUTES);
+            return null;
+        }
+
+        // 4. 数据库结果存入Redis（10-15分钟过期，防雪崩）
+        long expireTime = 10 + new Random().nextInt(5);
+        redisTemplate.opsForValue().set(cacheKey, spu, expireTime, TimeUnit.MINUTES);
+        log.info("SPU信息存入Redis，ID：{}，过期时间：{}分钟", spuId, expireTime);
+
+        return spu;
+    }
 }

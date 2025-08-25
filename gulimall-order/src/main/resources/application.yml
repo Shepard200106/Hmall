@@ -18,3 +18,17 @@ spring:
     username: root
     password: 123456789
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+# Seata配置
+seata:
+  enabled: true
+  tx-service-group: gulimall_tx_group # 事务组名称（需与Seata Server配置一致）
+  service:
+    vgroup-mapping:
+      gulimall_tx_group: default # 映射到Seata Server的集群名（与registry.conf一致）
+  registry:
+    type: nacos # 注册中心类型
+    nacos:
+      server-addr: localhost:8850 # Seata Server所在的Nacos地址
+      application: seata-server # Seata Server的服务名（与registry.conf一致）
+      group: SEATA_GROUP # 分组（与registry.conf一致）
