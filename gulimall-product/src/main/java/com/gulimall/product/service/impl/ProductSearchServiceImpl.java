@@ -107,7 +107,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                             if(param.getPriceRange() != null && !param.getPriceRange().isEmpty()) {
                                 String[] prices = param.getPriceRange().split("_");
                                 b.filter(f -> f.range(r -> {
-                                    r.field("skuPrice");
+                                        r.field("skuPrice");
                                     if (prices.length == 2) {
                                         r.gte(JsonData.of(Double.parseDouble(prices[0]))).lte(JsonData.of(Double.parseDouble(prices[1])));
                                     } else if (param.getPriceRange().startsWith("_")) {

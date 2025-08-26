@@ -43,10 +43,11 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
 
-        <!-- MySQL 驱动 -->
+        <!-- MySQL 驱动（修正artifactId） -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <!-- 关键修改：将 mysql-connector-java 改为 mysql-connector-j -->
+            <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
 
