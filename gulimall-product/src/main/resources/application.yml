@@ -14,10 +14,10 @@ spring:
         max-idle: 8     # 最大空闲连接
         min-idle: 4     # 最小空闲连接
   datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:9001/gulimall_pms?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&allowPublicKeyRetrieval=true
     username: root
     password: 123456789
-    driver-class-name: com.mysql.cj.jdbc.Driver
   cloud:
     nacos:
       discovery:
@@ -44,13 +44,22 @@ elasticsearch:
 # Seata配置
 seata:
   enabled: true
-  tx-service-group: gulimall_tx_group # 事务组名称（需与Seata Server配置一致）
+  tx-service-group: default  # 必须与服务端tx-service-group.default一致
   service:
     vgroup-mapping:
-      gulimall_tx_group: default # 映射到Seata Server的集群名（与registry.conf一致）
+      default: default  # 必须与服务端store.vgroupMapping.default一致
   registry:
-    type: nacos # 注册中心类型
+    type: nacos
     nacos:
-      server-addr: localhost:8850 # Seata Server所在的Nacos地址
-      application: seata-server # Seata Server的服务名（与registry.conf一致）
-      group: SEATA_GROUP # 分组（与registry.conf一致）
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      group: SEATA_GROUP
+  config:
+    type: nacos
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      group: SEATA_GROUP
+  data-source-proxy-mode: AT  # 2.0.0需明确指定代理模式

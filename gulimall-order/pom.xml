@@ -77,14 +77,10 @@
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
-            <!-- 版本号需要与你的Spring Cloud Alibaba版本匹配 -->
-            <version>2.2.7.RELEASE</version>
         </dependency>
-
-        <!-- 如果使用Nacos作为注册中心，确保已添加以下依赖 -->
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <groupId>io.seata</groupId>
+            <artifactId>seata-spring-boot-starter</artifactId>
         </dependency>
 
     </dependencies>

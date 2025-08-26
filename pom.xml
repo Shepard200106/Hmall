@@ -35,7 +35,7 @@
         <!-- 版本管理 -->
         <spring.boot.version>2.7.18</spring.boot.version>
         <spring.cloud.version>2021.0.8</spring.cloud.version>
-        <spring.cloud.alibaba.version>2021.0.4.0</spring.cloud.alibaba.version>
+
         <mybatis.spring.boot.version>2.2.2</mybatis.spring.boot.version>
 
         <mybatis.plus.version>3.5.6</mybatis.plus.version>
@@ -45,6 +45,10 @@
 
         <elasticsearch.version>8.13.4</elasticsearch.version>
         <mq.version>2.2.3</mq.version>
+        <spring.cloud.alibaba.version>2021.0.4.0</spring.cloud.alibaba.version>
+<!--        <spring.cloud.alibaba.version>2022.0.0.0-RC2</spring.cloud.alibaba.version>-->
+        <seata.version>2.0.0</seata.version>
+
     </properties>
 
     <dependencyManagement>
@@ -158,6 +162,33 @@
                 <groupId>org.elasticsearch</groupId>
                 <artifactId>elasticsearch</artifactId>
                 <version>${elasticsearch.version}</version>
+            </dependency>
+
+
+            <!-- 3. 配置 Spring Cloud Alibaba Seata Starter（用 Spring Cloud Alibaba 版本） -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+                <version>${spring.cloud.alibaba.version}</version> <!-- 正确：2022.0.0.0-RC2 -->
+                <exclusions>
+                    <!-- 排除 Starter 内置的旧版 Seata 依赖，避免与我们指定的 2.0.0 冲突 -->
+                    <exclusion>
+                        <groupId>io.seata</groupId>
+                        <artifactId>seata-spring-boot-starter</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <!-- 4. 配置 Seata 核心依赖（用 Seata 版本，与 Server 一致） -->
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-spring-boot-starter</artifactId>
+                <version>${seata.version}</version> <!-- 正确：2.0.0 -->
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
