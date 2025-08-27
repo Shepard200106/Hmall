@@ -4,8 +4,8 @@ import com.gulimall.common.utils.UserContext;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest; // 正确：Jakarta EE 规范包
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 商品服务的用户信息拦截器：从请求头获取用户ID，存入ThreadLocal

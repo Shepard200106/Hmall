@@ -51,7 +51,7 @@
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
-<!--        由于版本问题，使用nacos一定要加上这个-->
+        <!--        由于版本问题，使用nacos一定要加上这个-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
