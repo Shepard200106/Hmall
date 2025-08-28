@@ -26,7 +26,8 @@ spring:
         ip: 127.0.0.1
   jackson:
     default-property-inclusion: non_null
-
+  elasticsearch:
+    uris: http://localhost:9200
 mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml
   global-config:
@@ -39,15 +40,16 @@ rocketmq:
   name-server: 127.0.0.1:9876
   producer:
     group: gulimall-product-producer   # ← 必须有，名字自取即可
-elasticsearch:
-  uris: http://localhost:9200
+
 # Seata配置
 seata:
   enabled: true
-  tx-service-group: default  # 必须与服务端tx-service-group.default一致
+  enable-auto-data-source-proxy: true   # ★ 新增
+  data-source-proxy-mode: AT
+  tx-service-group: gulimall_tx_group
   service:
-    vgroup-mapping:
-      default: default  # 必须与服务端store.vgroupMapping.default一致
+    vgroupMapping:
+      gulimall_tx_group: default
   registry:
     type: nacos
     nacos:
@@ -55,6 +57,9 @@ seata:
       username: nacos
       password: nacos
       group: SEATA_GROUP
+      namespace: ""
+      application: seata-server
+      cluster: default
   config:
     type: nacos
     nacos:
@@ -62,4 +67,4 @@ seata:
       username: nacos
       password: nacos
       group: SEATA_GROUP
-  data-source-proxy-mode: AT  # 2.0.0需明确指定代理模式
+      namespace: ""

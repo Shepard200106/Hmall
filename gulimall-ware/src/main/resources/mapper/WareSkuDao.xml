@@ -4,7 +4,18 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.gulimall.ware.dao.WareSkuDao">
-
+    <!-- 1. 补充 selectAvailableStock 对应的 SQL（核心缺失部分） -->
+    <select id="selectAvailableStock" resultType="com.gulimall.ware.entity.WareSkuEntity">
+        <!-- 逻辑：根据 skuId 查找，且可用库存（总库存 - 已锁定库存）≥ 需要锁定的 count -->
+        SELECT
+        id, sku_id, ware_id, stock, stock_locked  <!-- 字段要和 WareSkuEntity 对应，也可写 * -->
+        FROM
+        ware_sku  <!-- 表名要和数据库实际表名一致（你的实体类 @TableName 是 "ware_sku"，没问题） -->
+        WHERE
+        sku_id = #{skuId}  <!-- 对应 DAO 方法的 @Param("skuId") -->
+        AND (stock - stock_locked) >= #{count}  <!-- 可用库存 ≥ 需要锁定的数量（@Param("count")） -->
+        LIMIT 1  <!-- 只返回一条符合条件的记录（找到一个有足够库存的仓库即可） -->
+    </select>
     <update id="lockSkuStock">
         UPDATE ware_sku
         SET stock_locked = stock_locked + #{num}

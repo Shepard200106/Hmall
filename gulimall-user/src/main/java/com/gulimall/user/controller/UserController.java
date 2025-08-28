@@ -7,7 +7,7 @@ import com.gulimall.user.dto.RegisterRequest;
 import com.gulimall.user.entity.UserEntity;
 import com.gulimall.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.TimeUnit;
@@ -19,7 +19,7 @@ public class UserController {
     @Autowired
     private UserService userService;
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @GetMapping("/{id}")
     public R getUser(@PathVariable("id") Long id) {
@@ -35,25 +35,28 @@ public class UserController {
         return R.ok().put("message","注册成功");
     }
 
+
+
     @GetMapping("/send-code/{phone}")
     public R sendCode(@PathVariable("phone") String phone) {
         String code = "123456";
-        redisTemplate.opsForValue().set("verify:code:" + phone, code, 5, TimeUnit.MINUTES);
-        return R.ok().put("code", code);
+        stringRedisTemplate.opsForValue().set("verify:code:" + phone, code, 5, TimeUnit.MINUTES);
+        return R.ok().put("code", code); // 仅测试阶段返回，正式环境请去掉
     }
+
 
     @GetMapping("/me")
     public R me() {
         Long userId = UserContext.getUser_ID_HOLDER(); // ✅ 无需再查 token、数据库
+        System.out.println(UserContext.getUser_ID_HOLDER());
         return R.ok().put("userId", userId);
     }
 
     @PostMapping("/login")
     public R login(@RequestBody LoginRequest request) {
         R res = userService.login(request);
-//        System.out.println("token返回");
-//        System.out.println(res);
-        return R.ok().put("message","登录/注册成功")
-                    .put("user", res);
+        return res.put("message", "登录/注册成功");
+        // 或者：return res;（如果不需要 message）
     }
+
 }

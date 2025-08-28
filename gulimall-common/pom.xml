@@ -34,12 +34,12 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <scope>runtime</scope> <!-- 运行时依赖，编译期无需可见 -->
+
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <scope>runtime</scope> <!-- JSON 序列化的运行时依赖 -->
+
         </dependency>
 
         <!-- 测试依赖 (使用Spring Boot统一测试 starter，替换单独的junit) -->

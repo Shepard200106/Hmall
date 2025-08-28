@@ -10,7 +10,6 @@ import com.gulimall.user.dto.RegisterRequest;
 import com.gulimall.user.entity.UserEntity;
 import com.gulimall.user.mapper.UserMapper;
 import com.gulimall.user.service.UserService;
-import io.jsonwebtoken.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

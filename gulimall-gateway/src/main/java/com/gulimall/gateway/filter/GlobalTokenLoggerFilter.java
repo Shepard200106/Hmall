@@ -16,7 +16,7 @@ public class GlobalTokenLoggerFilter implements GatewayFilter {
 
         // 🔍 打印 Authorization 请求头
         String token = request.getHeaders().getFirst("Authorization");
-        System.out.println("📦 Token from client: " + token);
+//        System.out.println("📦 Token from client: " + token);
 
         return chain.filter(exchange);
     }

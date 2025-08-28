@@ -21,14 +21,15 @@ rocketmq:
   name-server: 127.0.0.1:9876
 
 # Seata配置
-# Seata配置
-# Seata配置
+# 仅负责告诉客户端“去哪找 seata-server”和事务组名
 seata:
   enabled: true
-  tx-service-group: default  # 必须与服务端tx-service-group.default一致
+  enable-auto-data-source-proxy: true   # ★ 新增
+  data-source-proxy-mode: AT
+  tx-service-group: gulimall_tx_group
   service:
     vgroup-mapping:
-      default: default  # 必须与服务端store.vgroupMapping.default一致
+      gulimall_tx_group: default
   registry:
     type: nacos
     nacos:
@@ -36,6 +37,9 @@ seata:
       username: nacos
       password: nacos
       group: SEATA_GROUP
+      namespace: ""
+      application: seata-server
+      cluster: default
   config:
     type: nacos
     nacos:
@@ -43,4 +47,4 @@ seata:
       username: nacos
       password: nacos
       group: SEATA_GROUP
-  data-source-proxy-mode: AT  # 2.0.0需明确指定代理模式
+      namespace: ""

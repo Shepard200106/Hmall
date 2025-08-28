@@ -37,9 +37,10 @@ public class OrderServiceImpl implements OrderService {
         order.setMemberId(vo.getMemberId());
         order.setCreateTime(new Date());
         order.setStatus(0); // 未支付
-
+        System.out.println(order);
         BigDecimal total = BigDecimal.ZERO;
         for (OrderSubmitVo.OrderItemVo item : vo.getItems()) {
+            System.out.println(item);
             BigDecimal itemTotal = item.getSkuPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
             total = total.add(itemTotal);
         }
@@ -47,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 2. 保存订单主表
         orderDao.insert(order);
-
+        System.out.println(order);
         // 3. 保存订单项
         for (OrderSubmitVo.OrderItemVo itemVo : vo.getItems()) {
             OrderItemEntity item = new OrderItemEntity();
@@ -56,7 +57,7 @@ public class OrderServiceImpl implements OrderService {
             item.setSpuName(itemVo.getSkuName());          // 商品名称
             item.setSkuPrice(itemVo.getSkuPrice());        // 商品单价
             item.setQuantity(itemVo.getQuantity());        // 数量
-
+            System.out.println(item);
             BigDecimal itemTotal = itemVo.getSkuPrice().multiply(BigDecimal.valueOf(itemVo.getQuantity()));
             item.setTotalAmount(itemTotal);
 
